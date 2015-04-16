@@ -1,11 +1,11 @@
 'use strict';
 
-var Promise = require('bluebird');
+var BlueBird = require('bluebird');
 
 
-function BlueBirdQueue(options){
-	options = options || {};
-	
+function BlueBirdQueue(options) {
+  options = options || {};
+
   /**
    * The amount of queued promises that will be resolved at the same time.
    *
@@ -14,7 +14,7 @@ function BlueBirdQueue(options){
    * @default 4
    */
   this.concurrency = options.concurrency || 4;
-  
+
   /**
    * Optional delay to append to each promise when resolving.
    *
@@ -23,7 +23,7 @@ function BlueBirdQueue(options){
    * @default 0
    */
   this.delay = options.delay || 0;
-  
+
   /**
    * The interval that queued promises will recheck when the queue is full.
    * The more promises you attempt to queue past concurrency limits, the
@@ -34,24 +34,24 @@ function BlueBirdQueue(options){
    * @default 5000
    */
   this.interval = options.interval || 5000;
-  
-	/**
-	 * Attachable callback that will be passed all resolved promises if the
-	 * queue empties.
-	 *
-	 * @method onComplete
-	 * @return {Array} an array of resolved promises
-	 */
-  this.onComplete = options.onComplete || function(){};
-  
-	/**
-	 * Attachable callback that will be invoked on error.
-	 *
-	 * @method onError
-	 * @return {Error} an error
-	 */
-  this.onError = options.onError || function(){};
-  
+
+  /**
+   * Attachable callback that will be passed all resolved promises if the
+   * queue empties.
+   *
+   * @method onComplete
+   * @return {Array} an array of resolved promises
+   */
+  this.onComplete = options.onComplete || function() {};
+
+  /**
+   * Attachable callback that will be invoked on error.
+   *
+   * @method onError
+   * @return {Error} an error
+   */
+  this.onError = options.onError || function() {};
+
   this._queue = [];
   this._queueWaiting = [];
   this._processed = [];
@@ -64,15 +64,15 @@ function BlueBirdQueue(options){
  * @method start
  * @return {Promise} a bluebird promise
  */
-BlueBirdQueue.prototype.start = function(func, args){
-	var self = this;
-	process.nextTick(function() {
-		self._dequeue();
-	});
-  return new Promise(function(resolve, reject){
-		self.onComplete = resolve;
-		self.onError = reject;
-	});
+BlueBirdQueue.prototype.start = function(func, args) {
+  var self = this;
+  process.nextTick(function() {
+    self._dequeue();
+  });
+  return new BlueBird(function(resolve, reject) {
+    self.onComplete = resolve;
+    self.onError = reject;
+  });
 };
 
 /**
@@ -82,9 +82,9 @@ BlueBirdQueue.prototype.start = function(func, args){
  * @method add
  * @return void
  */
-BlueBirdQueue.prototype.add = function(func, args){
-	if(args) func = func.bind(null, args);
-  this._queue.push( func );
+BlueBirdQueue.prototype.add = function(func, args) {
+  if (args) func = func.bind(null, args);
+  this._queue.push(func);
 };
 
 /**
@@ -93,9 +93,9 @@ BlueBirdQueue.prototype.add = function(func, args){
  * @method add
  * @return void
  */
-BlueBirdQueue.prototype.addNow = function(){
-	self.add(arguments);
-  self._dequeue();
+BlueBirdQueue.prototype.addNow = function() {
+  this.add(arguments);
+  this._dequeue();
 };
 
 /**
@@ -105,41 +105,43 @@ BlueBirdQueue.prototype.addNow = function(){
  * @method drain
  * @return void
  */
-BlueBirdQueue.prototype.drain = function(){
+BlueBirdQueue.prototype.drain = function() {
 
-  if(!this._queue.length) return;
+  if (!this._queue.length) return;
   try {
 
     for (var i = 0; i < this._queueWaiting.length; i++) {
       clearTimeout(this._queueWaiting[i]);
     }
-		
+
     this._queueWaiting = [];
 
-    var batches = Math.floor(this._queue.length/this.concurrency);
+    var batches = Math.floor(this._queue.length / this.concurrency);
 
-    if(batches === 0){
+    if (batches === 0) {
       this._working = false;
       this._dequeue();
-    }else{
+    } else {
       for (i = 0; i < batches; i++) {
         this._working = false;
         this._dequeue();
       }
     }
-  }catch(ex){
+  } catch (ex) {
     this.onError(ex);
   }
 };
 
-BlueBirdQueue.prototype._dequeue = function(){
+BlueBirdQueue.prototype._dequeue = function() {
   var self = this;
 
   try {
 
-    if(self._working === true){
+    if (self._working === true) {
       self._queueWaiting.push(
-        setTimeout(function(){self._deqeue();}, self.interval)
+        setTimeout(function() {
+          self._deqeue();
+        }, self.interval)
       );
       return;
     }
@@ -149,20 +151,20 @@ BlueBirdQueue.prototype._dequeue = function(){
     self._working = true;
 
     for (var i = 0; i < self.concurrency; i++) {
-      if( self._queue[i] ) promises.push( self._queue.shift()() );
+      if (self._queue[i]) promises.push(self._queue.shift()());
     }
-	
-		
-    Promise.all(promises).delay(self.delay).spread(function(){
+
+
+    BlueBird.all(promises).delay(self.delay).spread(function() {
       self._working = false;
       self._processed = self._processed.concat(Array.prototype.slice.call(arguments));
       // if there are no more promises call onComplete.
-      if(!self._queue.length && !self._queueWaiting.length) self.onComplete(self._processed);
+      if (!self._queue.length && !self._queueWaiting.length) self.onComplete(self._processed);
       // if there are more promises by no waiting promises then restart this function.
-      if(self._queue.length && !self._queueWaiting.length) self._dequeue();
+      if (self._queue.length && !self._queueWaiting.length) self._dequeue();
     }).catch(self.onError);
 
-  }catch(ex){
+  } catch (ex) {
     self.onError(ex);
   }
 };
