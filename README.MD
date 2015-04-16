@@ -54,18 +54,18 @@ Starting and using queue is simple. You can add any of the options listed above 
 
 ``` js
 var BlueBirdQueue = require('bluebird-queue'),
-		Promise = require('bluebird'),
-		queue = new BlueBirdQueue({
-			concurrency: 5000 //optional
-		});
+    Promise = require('bluebird'),
+    queue = new BlueBirdQueue({
+      concurrency: 5 // optional, how many items to process at a time
+    });
 
 var bookPromise = function(args){
-	return getBookByNamePromise(args);
+  return getBookByNamePromise(args);
 };
-	
+
 queue.add(somePromise, ['some book', 'anotherbook']);
 queue.start().then(function(results){
-	console.log(results);
+  console.log(results);
 });
 
 ```
