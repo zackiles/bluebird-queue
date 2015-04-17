@@ -59,11 +59,17 @@ var BlueBirdQueue = require('bluebird-queue'),
       concurrency: 5 // optional, how many items to process at a time
     });
 
-var bookPromise = function(args){
-  return getBookByNamePromise(args);
+var bookPromise = function(name){
+  return getBookByNamePromise(name);
 };
 
-queue.add(somePromise, ['some book', 'anotherbook']);
+// only create a reference to the function, don't actually call it.
+var bookPromise1 = bookPromise.bind(null, 'some book',);
+var bookPromise2 = bookPromise.bind(null, 'another book');
+
+// add multiple promises to the queue in one call
+// can also be called with a single function and no array
+queue.add([bookPromise1, bookPromise2], bookPromise);
 queue.start().then(function(results){
   console.log(results);
 });
@@ -73,10 +79,10 @@ queue.start().then(function(results){
 ### Methods
 
 #### add()
-Paramters: `function, array of arguments`
+Paramters: `function or array of function references`
 Returns: `nothing`
 
-Adds a promise reference to the queue. Does not resolve the promise until start() is called. First argument is a function that returns a promise. Second argument is an array of arguments to pass to the promise returning function.
+Adds a promise reference to the queue. Does not resolve the promise until start() is called. Can be passed a single promise returning function or an arrary of promise returning functions.
 
 #### addNow()
 Paramters: `function, array of arguments`
