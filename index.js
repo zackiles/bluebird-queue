@@ -82,9 +82,16 @@ BlueBirdQueue.prototype.start = function(func, args) {
  * @method add
  * @return void
  */
-BlueBirdQueue.prototype.add = function(func, args) {
-  if (args) func = func.bind(null, args);
-  this._queue.push(func);
+BlueBirdQueue.prototype.add = function(func) {
+  var self = this;
+  if(typeof func === 'array'){
+    func.forEach(function(f){
+      self._queue.push(func);
+    });
+  }
+  if(typeof func === 'function'){
+    self._queue.push(func);
+  }
 };
 
 /**
@@ -93,8 +100,8 @@ BlueBirdQueue.prototype.add = function(func, args) {
  * @method add
  * @return void
  */
-BlueBirdQueue.prototype.addNow = function() {
-  this.add(arguments);
+BlueBirdQueue.prototype.addNow = function(func) {
+  this.add(func);
   this._dequeue();
 };
 
@@ -154,6 +161,10 @@ BlueBirdQueue.prototype._dequeue = function() {
       if (self._queue[i]) promises.push(self._queue.shift()());
     }
 
+    if(!promises.length) {
+      self._working = false;
+      return;
+    }
 
     BlueBird.all(promises).delay(self.delay).spread(function() {
       self._working = false;
@@ -165,6 +176,7 @@ BlueBirdQueue.prototype._dequeue = function() {
     }).catch(self.onError);
 
   } catch (ex) {
+    self._working = false;
     self.onError(ex);
   }
 };
