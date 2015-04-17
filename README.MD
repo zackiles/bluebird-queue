@@ -69,7 +69,7 @@ var bookPromise2 = bookPromise.bind(null, 'another book');
 
 // add multiple promises to the queue in one call
 // can also be called with a single function and no array
-queue.add([bookPromise1, bookPromise2], bookPromise);
+queue.add([bookPromise1, bookPromise2]);
 queue.start().then(function(results){
   console.log(results);
 });
