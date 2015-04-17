@@ -12,7 +12,7 @@ describe('Methods', function() {
 
   beforeEach(function(done) {
     this.promiseQueue = new PromiseQueue();
-    this.promiseQueue.add(deadPromise, 'hello');
+    this.promiseQueue.add( deadPromise.bind(null, 'hello') );
     done();
   });
 
@@ -37,7 +37,7 @@ describe('Methods', function() {
       this.promiseQueue = new PromiseQueue();
       // index starts with 1 -> javascript tom foolery
       for (var i = 1; i < 8; i++) {
-        this.promiseQueue.add(deadPromise, i);
+        this.promiseQueue.add(deadPromise.bind(null, i));
       }
       assert.strictEqual(this.promiseQueue._queue.length, 7);
       this.promiseQueue.start().then(function(results) {
@@ -50,14 +50,14 @@ describe('Methods', function() {
     });
 
     it('resolve promise with delay', function(done) {
-      this.timeout(12000);
+      this.timeout(6000);
       this.promiseQueue = new PromiseQueue({
-        delay: 10000
+        delay: 5000
       });
 
       var future = new Date();
-      future.setSeconds(future.getSeconds() + 10);
-
+      future.setSeconds(future.getSeconds() + 5);
+      this.promiseQueue.add( deadPromise.bind(null, 'hello') );
       this.promiseQueue.start().then(function(results) {
         assert.strictEqual(new Date() > future, true);
         done();
