@@ -167,11 +167,11 @@ BlueBirdQueue.prototype._dequeue = function() {
     }
 
     BlueBird.all(promises).delay(self.delay).spread(function() {
-      self._working = false;
       self._processed = self._processed.concat(Array.prototype.slice.call(arguments));
       // if there are no more promises call onComplete.
       if (!self._queue.length && !self._queueWaiting.length) self.onComplete(self._processed);
       // if there are more promises by no waiting promises then restart this function.
+      self._working = false;
       if (self._queue.length && !self._queueWaiting.length) self._dequeue();
     }).catch(self.onError);
 
