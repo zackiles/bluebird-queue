@@ -64,7 +64,7 @@ function BlueBirdQueue(options) {
  * @method start
  * @return {Promise} a bluebird promise
  */
-BlueBirdQueue.prototype.start = function(func, args) {
+BlueBirdQueue.prototype.start = function() {
   var self = this;
   process.nextTick(function() {
     self._dequeue();
@@ -84,13 +84,12 @@ BlueBirdQueue.prototype.start = function(func, args) {
  */
 BlueBirdQueue.prototype.add = function(func) {
   var self = this;
-  if(typeof func === 'array'){
-    func.forEach(function(f){
-      self._queue.push(func);
-    });
-  }
-  if(typeof func === 'function'){
+  if(typeof func === 'array') {
+    self._queue = self._queue.concat(func);
+  }else if(typeof func === 'function')
     self._queue.push(func);
+  }else{
+    throw new Error('No promises were provided');
   }
 };
 
