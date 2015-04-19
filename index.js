@@ -83,11 +83,10 @@ BlueBirdQueue.prototype.start = function() {
  * @return void
  */
 BlueBirdQueue.prototype.add = function(func) {
-  var self = this;
   if(typeof func === 'array') {
-    self._queue = self._queue.concat(func);
+    this._queue = this._queue.concat(func);
   }else if(typeof func === 'function')
-    self._queue.push(func);
+    this._queue.push(func);
   }else{
     throw new Error('No promises were provided');
   }
@@ -101,7 +100,7 @@ BlueBirdQueue.prototype.add = function(func) {
  */
 BlueBirdQueue.prototype.addNow = function(func) {
   this.add(func);
-  this._dequeue();
+  if(!this._working) this._dequeue();
 };
 
 /**
@@ -143,7 +142,7 @@ BlueBirdQueue.prototype._dequeue = function() {
 
   try {
 
-    if (self._working === true) {
+    if (self._working) {
       self._queueWaiting.push(
         setTimeout(function() {
           self._deqeue();
