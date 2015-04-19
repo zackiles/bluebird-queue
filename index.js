@@ -85,7 +85,7 @@ BlueBirdQueue.prototype.start = function() {
 BlueBirdQueue.prototype.add = function(func) {
   if(typeof func === 'array') {
     this._queue = this._queue.concat(func);
-  }else if(typeof func === 'function')
+  }else if(typeof func === 'function') {
     this._queue.push(func);
   }else{
     throw new Error('No promises were provided');
