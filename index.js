@@ -145,7 +145,7 @@ BlueBirdQueue.prototype._dequeue = function() {
     if (self._working) {
       self._queueWaiting.push(
         setTimeout(function() {
-          self._deqeue();
+          self._dequeue();
         }, self.interval)
       );
       return;
