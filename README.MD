@@ -50,11 +50,13 @@ You can use the queue in two ways:
 - Manually adding items with the add() method then calling start() which returns a promise that resolves an array of the resolved queued promises. The add() method will not start resolving queued promises until start() is called.
 - Attaching a callback to onComplete and using the addNow() method which will start processing the queue right away.
 
-Starting and using queue is simple. You can add any of the options listed above to the new BlueBirdQueue constructor which taks an object.
+Starting and using queue is simple. You can add any of the options listed above to the new BlueBirdQueue constructor 
+which takes an object.
 
 ``` js
 var BlueBirdQueue = require('bluebird-queue'),
     Promise = require('bluebird'),
+    fs = Promise.promisifyAll(require('fs')),
     queue = new BlueBirdQueue({
       concurrency: 5 // optional, how many items to process at a time
     });
@@ -64,12 +66,13 @@ var bookPromise = function(name){
 };
 
 // only create a reference to the function, don't actually call it.
-var bookPromise1 = bookPromise.bind(null, 'some book',);
+var bookPromise1 = bookPromise.bind(null, 'some book');
 var bookPromise2 = bookPromise.bind(null, 'another book');
 
-// add multiple promises to the queue in one call
-// can also be called with a single function and no array
+// add multiple promises or promises-making functions to the queue in one call
 queue.add([bookPromise1, bookPromise2]);
+// can also be called with a single function and no array
+queue.add(fs.readFileAsync('package.json'));
 queue.start().then(function(results){
   console.log(results);
 });
@@ -79,25 +82,26 @@ queue.start().then(function(results){
 ### Methods
 
 #### add()
-Paramters: `function or array of function references`
+Parameters: `function, promise or array of function or promise references`
 Returns: `nothing`
 
-Adds a promise reference to the queue. Does not resolve the promise until start() is called. Can be passed a single promise returning function or an arrary of promise returning functions.
+Adds a promise reference to the queue. Does not resolve the promise until start() is called. Can be passed a single 
+promise returning function, a promise, or an array of promises or promise returning functions.
 
 #### addNow()
-Paramters: `function, array of arguments`
+Parameters: `function, array of arguments`
 Returns: `nothing`
 
-Utilitity method. Same as the add() method, but adds the item and starts processing without the need to call start.
+Utility method. Same as the add() method, but adds the item and starts processing without the need to call start.
 
 #### start()
-Paramters: `none`
+Parameters: `none`
 Returns: `promise`
 
 Starts processing the queued items and returns a promise that that resolves the results from all their resolved values.
 
 #### drain()
-Paramters: `none`
+Parameters: `none`
 Returns: `nothing`
 
 Immediately resolves all queued promises at once, ignoring concurrency, and frees any resources that were used. Will call the onComplete callback when it's finished.
