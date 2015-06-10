@@ -85,7 +85,7 @@ BlueBirdQueue.prototype.start = function() {
 BlueBirdQueue.prototype.add = function(func) {
   if(typeof func === 'array') {
     this._queue = this._queue.concat(func);
-  }else if(typeof func === 'function') {
+  }else if(typeof func === 'function' || 'then' in func) {
     this._queue.push(func);
   }else{
     throw new Error('No promises were provided');
@@ -145,7 +145,7 @@ BlueBirdQueue.prototype._dequeue = function() {
     if (self._working) {
       self._queueWaiting.push(
         setTimeout(function() {
-          self._deqeue();
+          self._dequeue();
         }, self.interval)
       );
       return;
@@ -156,7 +156,10 @@ BlueBirdQueue.prototype._dequeue = function() {
     self._working = true;
 
     for (var i = 0; i < self.concurrency; i++) {
-      if (self._queue[i]) promises.push(self._queue.shift()());
+      if (self._queue[i]) {
+        var promise = self._queue.shift();
+        promises.push(typeof promise === 'function' ? promise() : promise);
+      }
     }
 
     if(!promises.length) {
