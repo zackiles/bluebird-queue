@@ -8,6 +8,22 @@ var deadPromise = function(args, delay) {
   }).delay(delay || 0);
 };
 
+var createFullfilledThenable = function (result) {
+  return {
+    then: function (resolve, reject) {
+      resolve(result);
+    }
+  };
+};
+
+var createRejectedThenable = function (error_msg) {
+  return {
+    then: function (resolve, reject) {
+      reject(new Error(error_msg));
+    }
+  };
+};
+
 describe('Methods', function() {
 
   beforeEach(function(done) {
@@ -21,6 +37,12 @@ describe('Methods', function() {
       assert.strictEqual(this.promiseQueue._queue.length, 1);
       done();
     });
+
+    it('should accept a thenable', function(done) {
+      this.promiseQueue.add(createFullfilledThenable('result'));
+      assert.strictEqual(this.promiseQueue._queue.length, 2);
+      done();
+    });
   });
 
   describe('#start()', function() {
@@ -29,6 +51,24 @@ describe('Methods', function() {
       this.promiseQueue.start().then(function(results) {
         assert.strictEqual(results.length, 1);
         assert.strictEqual(results[0], 'hello');
+        done();
+      }).catch(done);
+    });
+
+    it('resolves both thenables and promise factories', function(done) {
+      this.promiseQueue.add(createFullfilledThenable('test'));
+      this.promiseQueue.start().then(function(results) {
+        assert.strictEqual(results.length, 2);
+        assert.strictEqual(results[0], 'hello');
+        assert.strictEqual(results[1], 'test');
+        done();
+      }).catch(done);
+    });
+
+    it('error in promises are propagated', function(done) {
+      this.promiseQueue.add(createRejectedThenable('this failed'));
+      this.promiseQueue.start().catch(function(err) {
+        assert.strictEqual(err.message, "this failed");
         done();
       }).catch(done);
     });
