@@ -83,7 +83,7 @@ BlueBirdQueue.prototype.start = function() {
  * @return void
  */
 BlueBirdQueue.prototype.add = function(func) {
-  if(typeof func === 'array') {
+  if(func instanceof Array) {
     this._queue = this._queue.concat(func);
   }else if(typeof func === 'function' || 'then' in func) {
     this._queue.push(func);
