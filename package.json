@@ -1,6 +1,6 @@
 {
   "name": "bluebird-queue",
-  "version": "0.0.7",
+  "version": "0.0.8",
   "description": "Create promise queues with Bluebird promises. Add concurrency and delays.",
   "main": "index.js",
   "scripts": {
