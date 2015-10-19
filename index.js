@@ -92,6 +92,24 @@ BlueBirdQueue.prototype.add = function(func) {
   }
 };
 
+
+/**
+ * Adds a promise to the beggining of the queue. Promise will not be resolved until start
+ * or drain is called.
+ *
+ * @method add
+ * @return void
+ */
+BlueBirdQueue.prototype.addInfront = function(func) {
+  if(func instanceof Array) {
+    this._queue = func.concat(this._queue);
+  }else if(typeof func === 'function' || 'then' in func) {
+    this._queue.unshift(func);
+  }else{
+    throw new Error('No promises were provided');
+  }
+};
+
 /**
  * Utility method. Adds a promise to the queue and starts processing right away.
  *
@@ -103,6 +121,16 @@ BlueBirdQueue.prototype.addNow = function(func) {
   if(!this._working) this._dequeue();
 };
 
+/**
+ * Utility method. Adds a promise to the beginning of the queue and starts processing right away.
+ *
+ * @method add
+ * @return void
+ */
+BlueBirdQueue.prototype.addNowInfront = function(func) {
+  this.addInfront(func);
+  if(!this._working) this._dequeue();
+};
 /**
  * Ignores concurrency and resolves all promises at once while ignoring
  * any promises that are waiting to be queued.
