@@ -184,7 +184,7 @@ BlueBirdQueue.prototype._dequeue = function() {
     self._working = true;
 
     for (var i = 0; i < self.concurrency; i++) {
-      if (self._queue[i]) {
+      if (self._queue[0]) {
         var promise = self._queue.shift();
         promises.push(typeof promise === 'function' ? promise() : promise);
       }
